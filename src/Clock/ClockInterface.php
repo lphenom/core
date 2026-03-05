@@ -11,4 +11,3 @@ interface ClockInterface
      */
     public function now(): \DateTimeImmutable;
 }
-

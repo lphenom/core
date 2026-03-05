@@ -10,10 +10,10 @@ test:
 	$(PHP) vendor/bin/phpunit --testdox
 
 lint:
-	$(PHP) vendor/bin/php-cs-fixer check --diff --ansi
+	$(PHP) vendor/bin/php-cs-fixer check --diff --ansi --allow-risky=yes
 
 lint-fix:
-	$(PHP) vendor/bin/php-cs-fixer fix --ansi
+	$(PHP) vendor/bin/php-cs-fixer fix --ansi --allow-risky=yes
 
 analyse:
 	$(PHP) vendor/bin/phpstan analyse --ansi
@@ -25,4 +25,5 @@ up:
 
 down:
 	docker compose down
+
 

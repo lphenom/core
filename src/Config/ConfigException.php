@@ -9,4 +9,3 @@ use LPhenom\Core\Exception\LPhenomException;
 final class ConfigException extends LPhenomException
 {
 }
-
