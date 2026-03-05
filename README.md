@@ -1,6 +1,6 @@
 # lphenom/core
 
-[![PHP](https://img.shields.io/badge/php-%3E%3D8.0-blue)](https://www.php.net/)
+[![PHP](https://img.shields.io/badge/php-%3E%3D8.1-blue)](https://www.php.net/)
 [![License: MIT](https://img.shields.io/badge/License-MIT-green.svg)](LICENSE)
 [![PHPUnit](https://img.shields.io/badge/tests-PHPUnit-blue)](phpunit.xml)
 [![PHPStan](https://img.shields.io/badge/static%20analysis-PHPStan%20lvl8-blueviolet)](phpstan.neon)
@@ -29,7 +29,7 @@
 composer require lphenom/core
 ```
 
-Требования: **PHP >= 8.0**
+Требования: **PHP >= 8.1**
 
 ---
 
