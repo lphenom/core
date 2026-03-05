@@ -4,7 +4,7 @@ Thank you for considering contributing to **LPhenom Core**! 🎉
 
 ## Requirements
 
-- PHP >= 8.0
+- PHP >= 8.1
 - Composer
 
 ## Getting Started
