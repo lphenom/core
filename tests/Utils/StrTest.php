@@ -50,4 +50,24 @@ final class StrTest extends TestCase
         self::assertTrue(Str::startsWith('', ''));
         self::assertFalse(Str::startsWith('', 'a'));
     }
+
+    public function testContainsTrue(): void
+    {
+        self::assertTrue(Str::contains('LPhenom Framework', 'Framework'));
+        self::assertTrue(Str::contains('LPhenom Framework', 'LPhenom'));
+        self::assertTrue(Str::contains('hello', 'ell'));
+        self::assertTrue(Str::contains('hello', ''));
+    }
+
+    public function testContainsFalse(): void
+    {
+        self::assertFalse(Str::contains('hello', 'world'));
+        self::assertFalse(Str::contains('LPhenom', 'KPHP'));
+    }
+
+    public function testContainsEmptyHaystack(): void
+    {
+        self::assertTrue(Str::contains('', ''));
+        self::assertFalse(Str::contains('', 'a'));
+    }
 }

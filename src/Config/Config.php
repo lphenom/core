@@ -32,8 +32,7 @@ final class Config
      */
     public function has(string $key): bool
     {
-        $sentinel = new \stdClass();
-        return Arr::getDot($this->data, $key, $sentinel) !== $sentinel;
+        return Arr::hasDot($this->data, $key);
     }
 
     /**

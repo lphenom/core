@@ -94,6 +94,7 @@ final class ContainerTest extends TestCase
         }, true);
 
         $first = $container->get('service');
+        /** @var \stdClass $first */
         self::assertSame(1, $first->count);
 
         // Re-register the same service
@@ -105,6 +106,7 @@ final class ContainerTest extends TestCase
         }, true);
 
         $second = $container->get('service');
+        /** @var \stdClass $second */
         self::assertSame(2, $second->count);
     }
 

@@ -73,4 +73,37 @@ final class ArrTest extends TestCase
         $arr = ['val' => null];
         self::assertNull(Arr::getDot($arr, 'val', 'default'));
     }
+
+    public function testHasDotTopLevel(): void
+    {
+        $arr = ['key' => 'value', 'zero' => 0, 'null' => null, 'false' => false];
+        self::assertTrue(Arr::hasDot($arr, 'key'));
+        self::assertTrue(Arr::hasDot($arr, 'zero'));
+        self::assertTrue(Arr::hasDot($arr, 'null'));
+        self::assertTrue(Arr::hasDot($arr, 'false'));
+        self::assertFalse(Arr::hasDot($arr, 'missing'));
+    }
+
+    public function testHasDotNested(): void
+    {
+        $arr = ['a' => ['b' => ['c' => 42]]];
+        self::assertTrue(Arr::hasDot($arr, 'a.b.c'));
+        self::assertTrue(Arr::hasDot($arr, 'a.b'));
+        self::assertTrue(Arr::hasDot($arr, 'a'));
+        self::assertFalse(Arr::hasDot($arr, 'a.b.d'));
+        self::assertFalse(Arr::hasDot($arr, 'a.x'));
+        self::assertFalse(Arr::hasDot($arr, 'x.y'));
+    }
+
+    public function testHasDotReturnsTrueForNullValue(): void
+    {
+        $arr = ['a' => ['b' => null]];
+        self::assertTrue(Arr::hasDot($arr, 'a.b'));
+    }
+
+    public function testHasDotReturnsFalseWhenIntermediaryIsNotArray(): void
+    {
+        $arr = ['a' => 'not_an_array'];
+        self::assertFalse(Arr::hasDot($arr, 'a.b'));
+    }
 }
