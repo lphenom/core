@@ -1,0 +1,22 @@
+services:
+  php:
+    image: php:8.2.27-cli
+    working_dir: /app
+    volumes:
+      - .:/app
+    environment:
+      COMPOSER_HOME: /tmp/composer
+    command: ["php", "-v"]
+
+  composer:
+    image: composer:2.9.5
+    working_dir: /app
+    volumes:
+      - .:/app
+      - composer-cache:/tmp/composer
+    entrypoint: ["composer"]
+    command: ["install"]
+
+volumes:
+  composer-cache:
+

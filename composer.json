@@ -1,0 +1,38 @@
+{
+    "name": "lphenom/core",
+    "description": "LPhenom framework core — foundation package (KPHP-compatible)",
+    "type": "library",
+    "license": "MIT",
+    "keywords": ["lphenom", "framework", "core", "kphp"],
+    "homepage": "https://github.com/lphenom/core",
+    "authors": [
+        {
+            "name": "LPhenom Contributors",
+            "homepage": "https://github.com/lphenom"
+        }
+    ],
+    "require": {
+        "php": ">=8.0"
+    },
+    "require-dev": {
+        "phpunit/phpunit": "^10.5",
+        "phpstan/phpstan": "^1.12",
+        "friendsofphp/php-cs-fixer": "^3.64"
+    },
+    "autoload": {
+        "psr-4": {
+            "LPhenom\\Core\\": "src/"
+        }
+    },
+    "autoload-dev": {
+        "psr-4": {
+            "LPhenom\\Core\\Tests\\": "tests/"
+        }
+    },
+    "config": {
+        "sort-packages": true,
+        "optimize-autoloader": true
+    },
+    "minimum-stability": "stable"
+}
+
