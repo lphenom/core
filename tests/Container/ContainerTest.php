@@ -93,12 +93,12 @@ final class ContainerTest extends TestCase
 
         $container->set('a', makeFactory(function (Container $c): \stdClass {
             /** @var \stdClass */
-            return $c->get('b'); // @phpstan-ignore-line
+            return $c->get('b');
         }));
 
         $container->set('b', makeFactory(function (Container $c): \stdClass {
             /** @var \stdClass */
-            return $c->get('a'); // @phpstan-ignore-line
+            return $c->get('a');
         }));
 
         $this->expectException(ContainerException::class);
