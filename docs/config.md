@@ -149,3 +149,14 @@ DB_HOST='localhost'
 DSN=mysql://user:pass@host/db?charset=utf8
 ```
 
+## KPHP-совместимость
+
+| Компонент | Статус |
+|---|---|
+| `Config` — immutable, dot-notation | ✅ KPHP-совместим |
+| `EnvLoader` — парсинг key=value | ✅ KPHP-совместим |
+| `file()` вызывается с 1 аргументом | ✅ (флаги не поддерживаются в KPHP) |
+| Нет Reflection, eval, dynamic class loading | ✅ |
+
+> Подробнее обо всех ограничениях KPHP — в [docs/kphp-compatibility.md](./kphp-compatibility.md).
+

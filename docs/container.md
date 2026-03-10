@@ -103,9 +103,23 @@ $container->get('a'); // ContainerException: Circular dependency detected while 
 
 - ❌ Нет `Reflection`
 - ❌ Нет `new $id()`
+- ❌ Нет `callable` в `array<K,V>` — поэтому используется `ServiceFactoryInterface`
 - ✅ Все зависимости регистрируются явно
 - ✅ Строгая типизация `declare(strict_types=1)`
-- ✅ Callable-фабрики совместимы с KPHP
+- ✅ Фабрики через `ServiceFactoryInterface` (KPHP-friendly)
+- ✅ `get()` возвращает `mixed` — в KPHP используйте `instance_cast()`:
+
+```php
+// PHP mode — работает напрямую
+/** @var MyService $svc */
+$svc = $container->get('my_service');
+
+// KPHP mode — нужен явный cast
+$svc = instance_cast($container->get('my_service'), MyService::class);
+$svc->doSomething();
+```
+
+> Подробнее обо всех ограничениях KPHP — в [docs/kphp-compatibility.md](./kphp-compatibility.md).
 
 ## Clock
 
