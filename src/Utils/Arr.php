@@ -37,7 +37,7 @@ final class Arr
      * @param mixed                $default
      * @return mixed
      */
-    public static function getDot(array $array, string $key, mixed $default = null): mixed
+    public static function getDot(array $array, string $key, $default = null)
     {
         if (isset($array[$key])) {
             return $array[$key];
@@ -62,7 +62,7 @@ final class Arr
      * @param array<string, mixed> $array
      * @param mixed                $value
      */
-    public static function setDot(array &$array, string $key, mixed $value): void
+    public static function setDot(array &$array, string $key, $value): void
     {
         $parts = explode('.', $key);
         $current = &$array;

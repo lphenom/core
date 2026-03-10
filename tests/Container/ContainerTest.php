@@ -6,14 +6,37 @@ namespace LPhenom\Core\Tests\Container;
 
 use LPhenom\Core\Container\Container;
 use LPhenom\Core\Container\ContainerException;
+use LPhenom\Core\Container\ServiceFactoryInterface;
 use PHPUnit\Framework\TestCase;
+
+/**
+ * Helper: create an anonymous ServiceFactoryInterface from a closure.
+ *
+ * @param \Closure(Container): mixed $fn
+ */
+function makeFactory(\Closure $fn): ServiceFactoryInterface
+{
+    return new class ($fn) implements ServiceFactoryInterface {
+        private \Closure $fn;
+
+        public function __construct(\Closure $fn)
+        {
+            $this->fn = $fn;
+        }
+
+        public function create(Container $container): mixed
+        {
+            return ($this->fn)($container);
+        }
+    };
+}
 
 final class ContainerTest extends TestCase
 {
     public function testSetAndGetReturnsObject(): void
     {
         $container = new Container();
-        $container->set('service', fn (Container $c): object => new \stdClass());
+        $container->set('service', makeFactory(fn (Container $c): \stdClass => new \stdClass()));
 
         $result = $container->get('service');
         self::assertInstanceOf(\stdClass::class, $result);
@@ -22,7 +45,7 @@ final class ContainerTest extends TestCase
     public function testSharedReturnsSameInstance(): void
     {
         $container = new Container();
-        $container->set('service', fn (Container $c): object => new \stdClass(), true);
+        $container->set('service', makeFactory(fn (Container $c): \stdClass => new \stdClass()), true);
 
         $first  = $container->get('service');
         $second = $container->get('service');
@@ -33,7 +56,7 @@ final class ContainerTest extends TestCase
     public function testNotSharedReturnsDifferentInstances(): void
     {
         $container = new Container();
-        $container->set('service', fn (Container $c): object => new \stdClass(), false);
+        $container->set('service', makeFactory(fn (Container $c): \stdClass => new \stdClass()), false);
 
         $first  = $container->get('service');
         $second = $container->get('service');
@@ -44,7 +67,7 @@ final class ContainerTest extends TestCase
     public function testHasReturnsTrueForRegistered(): void
     {
         $container = new Container();
-        $container->set('service', fn (Container $c): object => new \stdClass());
+        $container->set('service', makeFactory(fn (Container $c): \stdClass => new \stdClass()));
 
         self::assertTrue($container->has('service'));
     }
@@ -68,13 +91,15 @@ final class ContainerTest extends TestCase
     {
         $container = new Container();
 
-        $container->set('a', function (Container $c): object {
-            return $c->get('b');
-        });
+        $container->set('a', makeFactory(function (Container $c): \stdClass {
+            /** @var \stdClass */
+            return $c->get('b'); // @phpstan-ignore-line
+        }));
 
-        $container->set('b', function (Container $c): object {
-            return $c->get('a');
-        });
+        $container->set('b', makeFactory(function (Container $c): \stdClass {
+            /** @var \stdClass */
+            return $c->get('a'); // @phpstan-ignore-line
+        }));
 
         $this->expectException(ContainerException::class);
         $this->expectExceptionMessageMatches('/[Cc]ircular/');
@@ -84,29 +109,26 @@ final class ContainerTest extends TestCase
     public function testRebindingResetsSharedInstance(): void
     {
         $container = new Container();
+        $counter   = 0;
 
-        $counter = 0;
-        $container->set('service', function (Container $c) use (&$counter): object {
-            $counter++;
-            $obj = new \stdClass();
-            $obj->count = $counter;
-            return $obj;
-        }, true);
+        $makeCountingFactory = function () use (&$counter): ServiceFactoryInterface {
+            return makeFactory(function (Container $c) use (&$counter): \stdClass {
+                $counter++;
+                $obj        = new \stdClass();
+                $obj->count = $counter;
+                return $obj;
+            });
+        };
 
-        $first = $container->get('service');
+        $container->set('service', $makeCountingFactory(), true);
         /** @var \stdClass $first */
+        $first = $container->get('service');
         self::assertSame(1, $first->count);
 
-        // Re-register the same service
-        $container->set('service', function (Container $c) use (&$counter): object {
-            $counter++;
-            $obj = new \stdClass();
-            $obj->count = $counter;
-            return $obj;
-        }, true);
-
-        $second = $container->get('service');
+        // Re-register — shared cache must be cleared
+        $container->set('service', $makeCountingFactory(), true);
         /** @var \stdClass $second */
+        $second = $container->get('service');
         self::assertSame(2, $second->count);
     }
 
@@ -114,16 +136,17 @@ final class ContainerTest extends TestCase
     {
         $container = new Container();
 
-        $dep = new \stdClass();
+        $dep        = new \stdClass();
         $dep->value = 'dependency';
 
-        $container->set('dep', fn (Container $c): object => $dep);
-        $container->set('main', function (Container $c): object {
-            $obj = new \stdClass();
+        $container->set('dep', makeFactory(fn (Container $c): \stdClass => $dep));
+        $container->set('main', makeFactory(function (Container $c): \stdClass {
+            $obj      = new \stdClass();
             $obj->dep = $c->get('dep');
             return $obj;
-        });
+        }));
 
+        /** @var \stdClass $main */
         $main = $container->get('main');
         self::assertInstanceOf(\stdClass::class, $main);
         self::assertSame($dep, $main->dep);

@@ -11,9 +11,13 @@ use LPhenom\Core\Utils\Arr;
  */
 final class Config
 {
+    /** @var array<string, mixed> */
+    private array $data;
+
     /** @param array<string, mixed> $data */
-    public function __construct(private readonly array $data)
+    public function __construct(array $data)
     {
+        $this->data = $data;
     }
 
     /**
@@ -22,7 +26,7 @@ final class Config
      * @param mixed $default
      * @return mixed
      */
-    public function get(string $key, mixed $default = null): mixed
+    public function get(string $key, $default = null)
     {
         return Arr::getDot($this->data, $key, $default);
     }

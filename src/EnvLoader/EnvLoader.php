@@ -22,17 +22,17 @@ final class EnvLoader
             throw new \RuntimeException(sprintf('EnvLoader: file "%s" not found or not readable.', $filePath));
         }
 
-        $lines = file($filePath, FILE_IGNORE_NEW_LINES);
+        $lines = file($filePath); // KPHP: file() supports only 1 argument
 
         if ($lines === false) {
             throw new \RuntimeException(sprintf('EnvLoader: unable to read file "%s".', $filePath));
         }
 
-        foreach ($lines as $line) {
-            $line = trim($line);
+        foreach ($lines as $rawLine) {
+            $line = trim((string)$rawLine);
 
             // Skip empty lines and comments
-            if ($line === '' || str_starts_with($line, '#')) {
+            if ($line === '' || substr($line, 0, 1) === '#') {
                 continue;
             }
 
@@ -52,7 +52,6 @@ final class EnvLoader
             $value = $this->stripQuotes($value);
 
             $_ENV[$name] = $value;
-            putenv($name . '=' . $value);
         }
     }
 
@@ -65,10 +64,6 @@ final class EnvLoader
             return $_ENV[$key];
         }
 
-        $fromEnv = getenv($key);
-        if (is_string($fromEnv)) {
-            return $fromEnv;
-        }
 
         return $default;
     }

@@ -1,4 +1,4 @@
-.PHONY: install test lint lint-fix analyse all up down
+.PHONY: install test lint lint-fix analyse all up down check
 
 DOCKER_RUN = docker compose run --rm php
 
@@ -27,6 +27,9 @@ phpstan: analyse
 
 all: install lint analyse test
 
+check:
+	docker build -f Dockerfile.check -t lphenom-core-check .
+
 help:
 	@echo "Available targets:"
 	@echo "  install   — install composer dependencies (in Docker)"
@@ -36,5 +39,6 @@ help:
 	@echo "  analyse   — run PHPStan static analysis (in Docker)"
 	@echo "  phpstan   — alias for analyse"
 	@echo "  all       — install + lint + analyse + test"
+	@echo "  check     — KPHP binary build + PHAR build verification (via Dockerfile.check)"
 	@echo "  up        — build and start Docker environment"
 	@echo "  down      — stop Docker environment"

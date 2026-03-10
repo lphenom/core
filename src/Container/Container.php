@@ -9,51 +9,69 @@ namespace LPhenom\Core\Container;
  *
  * All dependencies are registered explicitly via set().
  * No dynamic class loading, no reflection, no magic — KPHP-compatible.
+ *
+ * KPHP compatibility notes:
+ *  - Factories use ServiceFactoryInterface (callable not allowed in array<K,V> phpdocs)
+ *  - get() returns mixed — use instance_cast() in KPHP to cast to concrete type
+ *  - No try/finally (KPHP requires at least one catch)
+ *  - No !isset()+throw pattern (KPHP parser limitation)
  */
 final class Container
 {
-    /** @var array<string, callable> */
-    private array $bindings = [];
+    /** @var array<string, ServiceFactoryInterface> */
+    private array $factories = [];
 
     /** @var array<string, bool> */
     private array $shared = [];
 
-    /** @var array<string, object> */
+    /** @var array<string, mixed> */
     private array $instances = [];
 
-    /** @var array<string, bool> — tracks currently resolving services to detect circular deps */
+    /** @var array<string, bool> */
     private array $resolving = [];
 
     /**
      * Register a service factory.
      *
-     * @param callable(Container): object $factory
+     * In PHP mode any callable wrapped in an anonymous class works:
+     *
+     *   $container->set('id', new class implements ServiceFactoryInterface {
+     *       public function create(Container $c): MyService { return new MyService(); }
+     *   });
      */
-    public function set(string $id, callable $factory, bool $shared = true): void
+    public function set(string $id, ServiceFactoryInterface $factory, bool $shared = true): void
     {
-        $this->bindings[$id] = $factory;
-        $this->shared[$id]   = $shared;
-
-        // Reset cached instance when re-binding
+        $this->factories[$id] = $factory;
+        $this->shared[$id]    = $shared;
         unset($this->instances[$id]);
     }
 
     /**
      * Resolve a service by id.
      *
-     * @throws ContainerException if the service is not registered or a circular dependency is detected.
+     * Returns mixed — in KPHP use instance_cast($container->get('id'), MyService::class).
+     *
+     * @return mixed
+     * @throws ContainerException
      */
-    public function get(string $id): object
+    public function get(string $id): mixed
     {
-        if (!$this->has($id)) {
+        $factory = $this->factories[$id] ?? null;
+
+        if ($factory === null) {
             throw new ContainerException(sprintf(
                 'Service "%s" is not registered in the container.',
                 $id
             ));
         }
 
-        if (isset($this->shared[$id]) && $this->shared[$id] && isset($this->instances[$id])) {
-            return $this->instances[$id];
+        $isShared = isset($this->shared[$id]) && $this->shared[$id];
+
+        if ($isShared) {
+            $cached = $this->instances[$id] ?? null;
+            if ($cached !== null) {
+                return $cached;
+            }
         }
 
         if (isset($this->resolving[$id])) {
@@ -65,20 +83,23 @@ final class Container
 
         $this->resolving[$id] = true;
 
+        $exception = null;
+        $instance  = null;
+
         try {
-            $instance = ($this->bindings[$id])($this);
-        } finally {
-            unset($this->resolving[$id]);
+            $result   = $factory->create($this);
+            $instance = $result;
+        } catch (\Throwable $e) {
+            $exception = $e;
         }
 
-        if (!is_object($instance)) {
-            throw new ContainerException(sprintf(
-                'Factory for "%s" must return an object.',
-                $id
-            ));
+        unset($this->resolving[$id]);
+
+        if ($exception !== null) {
+            throw $exception;
         }
 
-        if (isset($this->shared[$id]) && $this->shared[$id]) {
+        if ($isShared) {
             $this->instances[$id] = $instance;
         }
 
@@ -90,6 +111,6 @@ final class Container
      */
     public function has(string $id): bool
     {
-        return isset($this->bindings[$id]);
+        return isset($this->factories[$id]);
     }
 }
