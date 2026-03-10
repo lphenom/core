@@ -25,15 +25,19 @@ FROM vkcom/kphp:latest AS kphp-build
 
 # Install php8.1-vkext from the official vkpartner APT repository (focal = Ubuntu 20.04).
 # This provides KPHP-aware PHP extensions / stubs for static analysis tools.
+# NOTE: This is OPTIONAL dev tooling — compilation does NOT require vkext.
+#       Installation may fail in air-gapped environments; build continues regardless.
 RUN apt-get update -qq \
     && apt-get install -y --no-install-recommends wget ca-certificates \
-    && wget -qO /etc/apt/trusted.gpg.d/vkpartner.asc \
+    && wget -q --timeout=10 -O /etc/apt/trusted.gpg.d/vkpartner.asc \
          https://artifactory-external.vkpartner.ru/artifactory/api/gpg/key/public \
     && echo "deb [arch=amd64] https://artifactory-external.vkpartner.ru/artifactory/kphp focal main" \
          > /etc/apt/sources.list.d/vkpartner.list \
     && apt-get update -qq \
     && apt-get install -y --no-install-recommends php8.1-vkext \
-    && rm -rf /var/lib/apt/lists/*
+    && echo "=== php8.1-vkext installed ===" \
+    || echo "=== php8.1-vkext SKIPPED (no network or repo unavailable — OK for compilation) ===" \
+    ; rm -rf /var/lib/apt/lists/*
 
 WORKDIR /build
 
